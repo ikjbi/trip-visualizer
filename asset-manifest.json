@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/trip-visualizer/static/css/main.76303e63.css",
+    "main.js": "/trip-visualizer/static/js/main.a10100f8.js",
+    "index.html": "/trip-visualizer/index.html",
+    "main.76303e63.css.map": "/trip-visualizer/static/css/main.76303e63.css.map",
+    "main.a10100f8.js.map": "/trip-visualizer/static/js/main.a10100f8.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.76303e63.css",
+    "static/js/main.a10100f8.js"
+  ]
+}

@@ -1,6 +1,5 @@
-// package.json
 {
-  "name": "vietnam-trip-visualizer",
+  "name": "trip-visualizer",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -38,5 +37,5 @@
   "devDependencies": {
     "gh-pages": "^5.0.0"
   },
-  "homepage": "https://yourusername.github.io/vietnam-trip-visualizer"
+  "homepage": "https://ikjbi.github.io/trip-visualizer"
 }

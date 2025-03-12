@@ -32,7 +32,7 @@ function App() {
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'AIzaSyAMpdzmaT3TqP57u_tv4lEJmVrHylOtlHU', // Replace with your API key
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries: ['places', 'geometry']
   });
 

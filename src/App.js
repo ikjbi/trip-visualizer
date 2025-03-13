@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, Polyline, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, Polyline, InfoWindow, Autocomplete } from '@react-google-maps/api';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { db, auth, signInWithGoogle, logOut } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import './App.css';
+const libraries = ['places', 'geometry'];
+
 
 // Default center ofVietnam
 const defaultCenter = { lat: 16.1667, lng: 107.8333 };
@@ -28,13 +30,59 @@ function App() {
   const [startDate, setStartDate] = useState(new Date());
   const [editingLocation, setEditingLocation] = useState(null);
   const [tripDates, setTripDates] = useState([]);
+  const [autocompleteRef, setAutocompleteRef] = useState(null);
+  const [searchBox, setSearchBox] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [addMode, setAddMode] = useState(false);
+  const [tempMarker, setTempMarker] = useState(null);
+  const [placesService, setPlacesService] = useState(null);
+  const [geocoder, setGeocoder] = useState(null);
+  const [selectedPlace, setSelectedPlace] = useState(null);
+
 
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries: ['places', 'geometry']
-  });
+    libraries: ['places', 'geometry'] // Add places library
+});
+
+  // Add this function to handle the search box load
+  const onLoadSearchBox = (autocomplete) => {
+    setSearchBox(autocomplete);
+  };
+
+  const onPlaceChanged = () => {
+    if (searchBox) {
+      const place = searchBox.getPlace();
+      if (place.geometry) {
+        // Set the map center to the selected place
+        setMapCenter({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng()
+        });
+        setMapZoom(14);
+        
+        // Store the selected place details
+        setSelectedPlace({
+          name: place.name,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          address: place.formatted_address
+        });
+        
+        // Automatically fill in the location form
+        setNewLocationName(place.name || '');
+        setNewLocationCoords(`${place.geometry.location.lat()}, ${place.geometry.location.lng()}`);
+        
+        // Add this line to set temporary marker
+        setTempMarker({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng()
+        });
+      }
+    }
+  };
 
   // Track authentication state
   useEffect(() => {
@@ -96,8 +144,74 @@ function App() {
   const onMapLoad = (map) => {
     if (window.google) {
       setDirectionsService(new window.google.maps.DirectionsService());
+      setPlacesService(new window.google.maps.places.PlacesService(map));
+      setGeocoder(new window.google.maps.Geocoder());
     }
   };
+
+  // Toggle Add Mode
+  const toggleAddMode = () => {
+    setAddMode(!addMode);
+    if (tempMarker) {
+      setTempMarker(null);
+    }
+  };
+
+  // Handle Map Click
+  const handleMapClick = (event) => {
+    if (!addMode || !currentTripId) return;
+    
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    
+    // Add a temporary marker
+    setTempMarker({ lat, lng });
+    
+    // Use geocoder to get location name
+    if (geocoder) {
+      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          // Found a location name
+          const name = results[0].formatted_address.split(',')[0];
+          setNewLocationName(name);
+          setNewLocationCoords(`${lat}, ${lng}`);
+        } else {
+          // No location name found, use coordinates as name
+          setNewLocationName(`Location at ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          setNewLocationCoords(`${lat}, ${lng}`);
+        }
+      });
+    }
+  };
+
+  // Save reference to the autocomplete component
+  const onAutocompleteLoad = (autocomplete) => {
+    setAutocompleteRef(autocomplete);
+  };
+
+
+
+
+  const selectPlace = (place) => {
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+    
+    setNewLocationName(place.name);
+    setNewLocationCoords(`${lat}, ${lng}`);
+    setTempMarker({ lat, lng });
+    setSearchResults([]);
+  };
+
+  // 4. Add a quick-add function
+  const quickAddLocation = () => {
+    if (!tempMarker || !newLocationName) return;
+    
+    addLocation();
+    setTempMarker(null);
+    setAddMode(false);
+  };
+
+
 
   // Calculate durations between destinations when current trip changes
   useEffect(() => {
@@ -661,6 +775,52 @@ function App() {
 
       <div className="app-container">
         <div className="sidebar">
+                {currentTripId && (
+          <div className="map-controls">
+            <button 
+              className={`add-mode-btn ${addMode ? 'active' : ''}`} 
+              onClick={toggleAddMode}
+            >
+              {addMode ? 'Cancel Add Mode' : 'Click Map to Add Location'}
+            </button>
+            
+            <div className="search-container">
+              <Autocomplete
+                onLoad={onAutocompleteLoad}
+                onPlaceChanged={onPlaceChanged}
+              >
+                <input
+                  type="text"
+                  placeholder="Search for a place (like Google Maps)"
+                  className="search-input"
+                />
+              </Autocomplete>
+            </div>
+            
+            {searchResults.length > 0 && (
+              <div className="search-results">
+                <h3>Search Results</h3>
+                <ul>
+                  {searchResults.map((place, index) => (
+                    <li key={index} onClick={() => selectPlace(place)}>
+                      <strong>{place.name}</strong>
+                      <p>{place.formatted_address}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {tempMarker && (
+              <div className="temp-marker-info">
+                <h3>New Location</h3>
+                <p><strong>Name:</strong> {newLocationName}</p>
+                <p><strong>Coordinates:</strong> {newLocationCoords}</p>
+                <button onClick={quickAddLocation} className="quick-add-btn">Add This Location</button>
+              </div>
+            )}
+          </div>
+        )}
           <div className="trip-management">
             <h2>Trip Management</h2>
             <div className="trip-selector">
@@ -689,11 +849,21 @@ function App() {
                 <div className="date-picker-container">
                   <label>Start Date:</label>
                   <DatePicker
-                    selected={startDate}
-                    onChange={date => setStartDate(date)}
-                    dateFormat="MMMM d, yyyy"
-                    className="date-picker"
-                  />
+                  selected={startDate}
+                  onChange={date => setStartDate(date)}
+                  dateFormat="MMMM d, yyyy"
+                  className="date-picker"
+                  popperPlacement="bottom-start"
+                  popperModifiers={[
+                    {
+                      name: "preventOverflow",
+                      options: {
+                        boundary: "viewport",
+                        padding: 20
+                      }
+                    }
+                  ]}
+                />
                 </div>
                 <button onClick={createTrip}>Create Trip</button>
               </div>
@@ -705,11 +875,21 @@ function App() {
                 <div className="input-group">
                   <label>Trip Start Date:</label>
                   <DatePicker
-                    selected={currentTrip.startDate ? new Date(currentTrip.startDate) : new Date()}
-                    onChange={date => updateTripStartDate(date)}
-                    dateFormat="MMMM d, yyyy"
-                    className="date-picker"
-                  />
+                  selected={currentTrip.startDate ? new Date(currentTrip.startDate) : new Date()}
+                  onChange={date => updateTripStartDate(date)}
+                  dateFormat="MMMM d, yyyy"
+                  className="date-picker"
+                  popperPlacement="bottom-start"
+                  popperModifiers={[
+                    {
+                      name: "preventOverflow",
+                      options: {
+                        boundary: "viewport",
+                        padding: 20
+                      }
+                    }
+                  ]}
+                />
                 </div>
                 <div className="trip-summary">
                   <p><strong>Total Duration:</strong> {calculateTotalDuration()}</p>
@@ -724,10 +904,42 @@ function App() {
               </div>
             )}
           </div>
-
+          
+          
+          
           {currentTripId && !editingLocation && (
             <div className="location-management">
               <h2>Add Location to "{currentTrip?.name}"</h2>
+              {isLoaded && (
+                <div className="search-box-container">
+                  <label>Search for a place:</label>
+                  <Autocomplete
+                    onLoad={onLoadSearchBox}
+                    onPlaceChanged={onPlaceChanged}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Search for locations"
+                      className="location-search-input"
+                    />
+                  </Autocomplete>
+                  {selectedPlace && (
+                    <div className="selected-place-info">
+                      <p><strong>{selectedPlace.name}</strong></p>
+                      <p className="selected-place-address">{selectedPlace.address}</p>
+                      <button 
+                        className="use-this-location-btn"
+                        onClick={() => {
+                          setNewLocationName(selectedPlace.name);
+                          setNewLocationCoords(`${selectedPlace.lat}, ${selectedPlace.lng}`);
+                        }}
+                      >
+                        Use This Location
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="input-group">
                 <input
                   type="text"
@@ -862,6 +1074,7 @@ function App() {
               center={mapCenter}
               zoom={mapZoom}
               onLoad={onMapLoad}
+              onClick={handleMapClick}
             >
               {currentTrip?.locations.map((location, index) => (
                 <Marker
@@ -903,6 +1116,14 @@ function App() {
                     strokeColor: '#FF0000',
                     strokeOpacity: 0.8,
                     strokeWeight: 3,
+                  }}
+                />
+              )}
+              {tempMarker && (
+                <Marker
+                  position={{ lat: tempMarker.lat, lng: tempMarker.lng }}
+                  icon={{
+                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                   }}
                 />
               )}

@@ -4,6 +4,169 @@
   padding: 0;
 }
 
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker-popper {
+  z-index: 10 !important;
+}
+
+.react-datepicker__triangle {
+  left: 50px !important;
+}
+
+.map-controls {
+  background-color: white;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.add-mode-btn {
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.add-mode-btn.active {
+  background-color: #FF9800;
+}
+
+.search-box-container {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.location-search-input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.selected-place-info {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+}
+
+.selected-place-address {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.use-this-location-btn {
+  background-color: #2196F3;
+  margin-top: 0.5rem;
+}
+
+.use-this-location-btn:hover {
+  background-color: #0b7dda;
+}
+
+.search-container {
+  width: 100%;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.pac-container {
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+  border-top: none;
+  margin-top: -1px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.pac-item {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.pac-item:hover {
+  background-color: #f5f5f5;
+}
+
+.pac-item-query {
+  font-size: 15px;
+  color: #333;
+}
+
+.pac-matched {
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.search-btn {
+  white-space: nowrap;
+}
+
+.search-results {
+  margin-top: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.search-results ul {
+  list-style: none;
+  padding: 0;
+}
+
+.search-results li {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.search-results li:hover {
+  background-color: #f0f0f0;
+}
+
+.search-results li p {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.temp-marker-info {
+  margin-top: 0.5rem;
+  background-color: #e8f5e9;
+  padding: 0.8rem;
+  border-radius: 4px;
+  border-left: 4px solid #4CAF50;
+}
+
+.quick-add-btn {
+  background-color: #4CAF50;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;

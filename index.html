@@ -1,21 +1,15 @@
-// public/index.html
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#4CAF50" />
-    <meta
-      name="description"
-      content="Vietnam Trip Visualizer - Plan your trip to Vietnam"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>Vietnam Trip Visualizer</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
+<html>
+<body>
+  <div id="map" style="height:400px;width:100%;"></div>
+  <script>
+    function initMap() {
+      new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 16.1667, lng: 107.8333},
+        zoom: 8
+      });
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR-API-KEY&callback=initMap" async defer></script>
+</body>
 </html>
